@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${venta.id == null ? 'Registrar Venta' : 'Editar Venta'}"></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <h1 th:text="${venta.id == null ? 'Registrar Nueva Venta' : 'Editar Venta'}"></h1>
+
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <form th:action="@{/vendedor/ventas/save}" th:object="${venta}" method="post">
+        <input type="hidden" th:field="*{id}" />
+
+        <div class="mb-3">
+            <label for="fecha" class="form-label">Fecha:</label>
+            <input type="date" id="fecha" th:field="*{fecha}" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="usuario" class="form-label">Usuario (Vendedor):</label>
+            <select id="usuario" th:field="*{usuario.id}" class="form-select" required>
+                <option value="">Seleccione un usuario</option>
+                <option th:each="user : ${usuarios}" th:value="${user.id_usuario}" th:text="${user.username}"></option>
+            </select>
+        </div>
+
+        <h3>Detalles de la Venta</h3>
+        <table class="table table-bordered" id="detallesTable">
+            <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Existing details (for edit mode) -->
+            <tr th:each="detalle, stat : *{detalles}">
+                <td>
+                    <select th:name="|detalles[${stat.index}].producto.id|" class="form-select producto-select" required>
+                        <option th:each="prod : ${productos}" th:value="${prod.id}" th:text="${prod.nombre}" th:selected="${prod.id == detalle.producto.id}"></option>
+                    </select>
+                </td>
+                <td><input type="number" step="0.001" th:name="|detalles[${stat.index}].cantidad|" th:value="${detalle.cantidad}" class="form-control" required></td>
+                <td>
+                    <select th:name="|detalles[${stat.index}].precioUnitario|" class="form-select precio-unitario-select" required>
+                        <option th:each="prod : ${productos}" th:if="${prod.id == detalle.producto.id}" th:value="${prod.precioVenta}" th:text="${prod.precioVenta}" selected></option>
+                    </select>
+                </td>
+                <td><button type="button" class="btn btn-danger btn-sm remove-row">Eliminar</button></td>
+            </tr>
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-success mb-3" id="addDetalle">Añadir Detalle</button>
+
+        <button type="submit" class="btn btn-primary">Guardar Venta</button>
+        <a th:href="@{/vendedor/dashboard}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function () {
+        const detallesTableBody = document.querySelector('#detallesTable tbody');
+        const addDetalleButton = document.getElementById('addDetalle');
+
+        const productos = /*[[${productos}]]*/ [];
+
+        const productoInfo = {
+            /*[# th:each="prod : ${productos}"]*/
+            [[${prod.id}]]: {
+                stock: [[${prod.stock}]],
+                precio: [[${prod.precioVenta}]]
+            },
+            /*[/]*/
+        };
+
+        function addRow(detalle = {}) {
+            const newRow = detallesTableBody.insertRow();
+            const rowIndex = detallesTableBody.rows.length - 1;
+
+            // Producto dropdown
+            const productoCell = newRow.insertCell();
+            const selectProducto = document.createElement('select');
+            selectProducto.className = 'form-select producto-select';
+            selectProducto.name = `detalles[${rowIndex}].producto.id`;
+            selectProducto.required = true;
+            
+            const defaultOption = document.createElement('option');
+            defaultOption.value = "";
+            defaultOption.textContent = "Seleccione un producto";
+            selectProducto.appendChild(defaultOption);
+
+            productos.forEach(prod => {
+                const option = document.createElement('option');
+                option.value = prod.id;
+                option.textContent = prod.nombre;
+                if (detalle.producto && detalle.producto.id === prod.id) {
+                    option.selected = true;
+                }
+                selectProducto.appendChild(option);
+            });
+            productoCell.appendChild(selectProducto);
+
+            // Cantidad
+            const cantidadCell = newRow.insertCell();
+            const inputCantidad = document.createElement('input');
+            inputCantidad.type = 'number';
+            inputCantidad.step = '0.001';
+            inputCantidad.className = 'form-control';
+            inputCantidad.name = `detalles[${rowIndex}].cantidad`;
+            inputCantidad.value = detalle.cantidad || '';
+            inputCantidad.required = true;
+            cantidadCell.appendChild(inputCantidad);
+
+            // Precio Unitario
+            const precioUnitarioCell = newRow.insertCell();
+            const selectPrecioUnitario = document.createElement('select');
+            selectPrecioUnitario.className = 'form-select precio-unitario-select';
+            selectPrecioUnitario.name = `detalles[${rowIndex}].precioUnitario`;
+            selectPrecioUnitario.required = true;
+            precioUnitarioCell.appendChild(selectPrecioUnitario);
+
+            function updatePrecio(productoId) {
+                const info = productoInfo[productoId];
+                selectPrecioUnitario.innerHTML = ''; // Clear existing options
+                if (info) {
+                    const option = document.createElement('option');
+                    option.value = info.precio;
+                    option.textContent = info.precio;
+                    selectPrecioUnitario.appendChild(option);
+                }
+            }
+
+            selectProducto.addEventListener('change', function () {
+                const productoId = parseInt(this.value);
+                const stockDisponible = productoInfo[productoId] ? productoInfo[productoId].stock : 0;
+                
+                inputCantidad.value = ''; // Reset quantity
+                
+                if (productoId) {
+                    updatePrecio(productoId);
+                } else {
+                    selectPrecioUnitario.innerHTML = '';
+                }
+            });
+
+            inputCantidad.addEventListener('input', function () {
+                const productoId = parseInt(selectProducto.value);
+                const stockDisponible = productoInfo[productoId] ? productoInfo[productoId].stock : 0;
+                const cantidadIngresada = parseFloat(inputCantidad.value);
+                if (cantidadIngresada > stockDisponible) {
+                    alert(`Stock insuficiente para el producto seleccionado. Disponible: ${stockDisponible}`);
+                    inputCantidad.value = '';
+                }
+            });
+
+            if (detalle.producto && detalle.producto.id) {
+                updatePrecio(detalle.producto.id);
+            }
+
+            // Acciones
+            const accionesCell = newRow.insertCell();
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'btn btn-danger btn-sm remove-row';
+            removeButton.textContent = 'Eliminar';
+            removeButton.onclick = function () {
+                newRow.remove();
+                updateRowIndexes();
+            };
+            accionesCell.appendChild(removeButton);
+        }
+
+        function updateRowIndexes() {
+            Array.from(detallesTableBody.rows).forEach((row, index) => {
+                row.querySelectorAll('select, input').forEach(element => {
+                    const nameAttr = element.name;
+                    if (nameAttr) {
+                        element.name = nameAttr.replace(/detalles\[\d+\]/, `detalles[${index}]`);
+                    }
+                });
+            });
+        }
+
+        const formularioVenta = document.querySelector('form');
+        formularioVenta.addEventListener('submit', function (e) {
+            const rows = document.querySelectorAll('#detallesTable tbody tr');
+            for (const row of rows) {
+                const selectProducto = row.querySelector('.producto-select');
+                const inputCantidad = row.querySelector('input[name*="cantidad"]');
+                const productoId = parseInt(selectProducto.value);
+                const stockDisponible = productoInfo[productoId] ? productoInfo[productoId].stock : 0;
+                const cantidad = parseFloat(inputCantidad.value);
+
+                if (isNaN(cantidad) || cantidad <= 0) {
+                    alert("Cantidad inválida. Debe ser mayor a 0.");
+                    e.preventDefault();
+                    return false;
+                }
+
+                if (cantidad > stockDisponible) {
+                    alert(`Stock insuficiente para el producto con ID ${productoId}. Disponible: ${stockDisponible}`);
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+
+        addDetalleButton.addEventListener('click', () => addRow());
+
+        detallesTableBody.addEventListener('change', function(e) {
+            if (e.target.classList.contains('producto-select')) {
+                const row = e.target.closest('tr');
+                const productoId = parseInt(e.target.value);
+                const precioSelect = row.querySelector('.precio-unitario-select');
+                const info = productoInfo[productoId];
+                
+                precioSelect.innerHTML = '';
+                if (info) {
+                    const option = document.createElement('option');
+                    option.value = info.precio;
+                    option.textContent = info.precio;
+                    precioSelect.appendChild(option);
+                }
+            }
+        });
+
+        detallesTableBody.querySelectorAll('.remove-row').forEach(button => {
+            button.onclick = function () {
+                button.closest('tr').remove();
+                updateRowIndexes();
+            };
+        });
+        
+        updateRowIndexes();
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

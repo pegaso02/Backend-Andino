@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Compra</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <h1>Registrar Nueva Compra</h1>
+
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <form th:action="@{/admin/compras/save}" th:object="${compra}" method="post">
+        <input type="hidden" th:field="*{id}" />
+
+        <div class="mb-3">
+            <label for="fecha" class="form-label">Fecha:</label>
+            <input type="date" id="fecha" th:field="*{fecha}" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="pedidoProveedor" class="form-label">Pedido a Proveedor (Pendiente):</label>
+            <select id="pedidoProveedor" name="pedidoProveedorId" class="form-select" required>
+                <option value="">Seleccione un pedido</option>
+                <option th:each="pedido : ${pedidosPendientes}" th:value="${pedido.id}" th:text="'Pedido #' + ${pedido.id} + ' - ' + ${pedido.proveedorId}"></option>
+            </select>
+        </div>
+
+<!--        <h3>Detalles de la Compra</h3>-->
+<!--        <table class="table table-bordered" id="detallesTable">-->
+<!--            <thead>-->
+<!--            <tr>-->
+<!--                <th>Producto</th>-->
+<!--                <th>Cantidad</th>-->
+<!--                <th>Precio Unitario</th>-->
+<!--                <th>Acciones</th>-->
+<!--            </tr>-->
+<!--            </thead>-->
+            <tbody>
+            <!-- Details will be populated by JavaScript based on selected PedidoProveedor -->
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-success mb-3" id="addDetalle">Añadir Detalle Manualmente</button>
+
+        <button type="submit" class="btn btn-primary">Guardar Compra</button>
+        <a th:href="@{/admin/compras}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function () {
+        const pedidoProveedorSelect = document.getElementById('pedidoProveedor');
+        const detallesTableBody = document.querySelector('#detallesTable tbody');
+        const addDetalleButton = document.getElementById('addDetalle');
+        const allProductos = /*[[${productos}]]*/ [];
+
+        // Function to add a new detail row
+        function addRow(productoId = '', cantidad = '', precioUnitario = '') {
+            const newRow = detallesTableBody.insertRow();
+            const rowIndex = detallesTableBody.rows.length - 1;
+
+            // Product Dropdown
+            const productoCell = newRow.insertCell();
+            const selectProducto = document.createElement('select');
+            selectProducto.className = 'form-select';
+            selectProducto.name = `productoId`; // Use simple name for @RequestParam List<Long> productIds
+            selectProducto.required = true;
+            allProductos.forEach(prod => {
+                const option = document.createElement('option');
+                option.value = prod.id;
+                option.textContent = prod.nombre;
+                if (prod.id == productoId) { // Use == for type coercion
+                    option.selected = true;
+                }
+                selectProducto.appendChild(option);
+            });
+            productoCell.appendChild(selectProducto);
+
+            // Quantity Input
+            const cantidadCell = newRow.insertCell();
+            const inputCantidad = document.createElement('input');
+            inputCantidad.type = 'number';
+            inputCantidad.step = '0.001';
+            inputCantidad.className = 'form-control';
+            inputCantidad.name = `cantidad`; // Use simple name for @RequestParam List<String> cantidades
+            inputCantidad.value = cantidad;
+            inputCantidad.required = true;
+            cantidadCell.appendChild(inputCantidad);
+
+            // Unit Price Input
+            const precioUnitarioCell = newRow.insertCell();
+            const inputPrecioUnitario = document.createElement('input');
+            inputPrecioUnitario.type = 'number';
+            inputPrecioUnitario.step = '0.01';
+            inputPrecioUnitario.className = 'form-control';
+            inputPrecioUnitario.name = `precioUnitario`; // Use simple name for @RequestParam List<String> preciosUnitarios
+            inputPrecioUnitario.value = precioUnitario;
+            inputPrecioUnitario.required = true;
+            precioUnitarioCell.appendChild(inputPrecioUnitario);
+
+            // Actions Cell
+            const accionesCell = newRow.insertCell();
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'btn btn-danger btn-sm remove-row';
+            removeButton.textContent = 'Eliminar';
+            removeButton.onclick = function() {
+                newRow.remove();
+            };
+            accionesCell.appendChild(removeButton);
+        }
+
+        // Event listener for adding a manual detail row
+        addDetalleButton.addEventListener('click', () => addRow());
+
+        // Event listener for PedidoProveedor selection change
+        pedidoProveedorSelect.addEventListener('change', function() {
+            const pedidoId = this.value;
+            detallesTableBody.innerHTML = ''; // Clear existing details
+
+            if (pedidoId) {
+                // Fetch PedidoProveedor details from backend (you'll need an API endpoint for this)
+                // For now, this is a placeholder. You would typically make an AJAX call here.
+                // Example: fetch(`/api/pedidos/${pedidoId}`).then(response => response.json()).then(data => {
+                //     data.detalles.forEach(detalle => {
+                //         addRow(detalle.productoId, detalle.cantidad, detalle.precioUnitario);
+                //     });
+                // });
+
+                // Since we don't have a direct API endpoint to get PedidoProveedor details by ID
+                // with all its nested details (products, etc.) in a simple DTO, we'll simulate it.
+                // In a real app, you'd fetch this via AJAX.
+                // For now, we'll just add a placeholder row.
+                addRow(); // Add an empty row for manual input
+            }
+        });
+
+        // Initial check if a pedido is pre-selected (e.g., in edit mode)
+        if (pedidoProveedorSelect.value) {
+            pedidoProveedorSelect.dispatchEvent(new Event('change'));
+        }
+
+        // Attach remove functionality to existing rows (if any)
+        detallesTableBody.querySelectorAll('.remove-row').forEach(button => {
+            button.onclick = function() {
+                button.closest('tr').remove();
+            };
+        });
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

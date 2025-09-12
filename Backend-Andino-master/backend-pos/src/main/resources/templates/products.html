@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Productos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Mi App</a>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/products}">Productos</a>
+                </li>
+            </ul>
+        </div>
+        <form th:action="@{/logout}" method="post" class="d-flex">
+            <button class="btn btn-outline-light" type="submit">Logout</button>
+        </form>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h2>Lista de Productos</h2>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Stock</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="product : ${products}">
+            <td th:text="${product.id}"></td>
+            <td th:text="${product.nombre}"></td>
+            <td th:text="${product.precioVenta}"></td>
+            <td th:text="${product.stock}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2>Añadir Nuevo Producto</h2>
+    <form th:action="@{/products/save}" th:object="${newProduct}" method="post">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="nombre" class="form-label">Nombre:</label>
+                <input type="text" id="nombre" th:field="*{nombre}" class="form-control" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="codigo" class="form-label">Código:</label>
+                <input type="text" id="codigo" th:field="*{codigo}" class="form-control" required>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="precioVenta" class="form-label">Precio de Venta:</label>
+                <input type="number" step="0.01" id="precioVenta" th:field="*{precioVenta}" class="form-control" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="stock" class="form-label">Stock:</label>
+                <input type="number" id="stock" th:field="*{stock}" class="form-control" required>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label for="categoria" class="form-label">Categoría:</label>
+                <select id="categoria" th:field="*{categoria}" class="form-select" required>
+                    <option value="">Seleccione una categoría</option>
+                    <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.nombre}"></option>
+                </select>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="proveedor" class="form-label">Proveedor:</label>
+                <select id="proveedor" th:field="*{proveedor}" class="form-select" required>
+                    <option value="">Seleccione un proveedor</option>
+                    <option th:each="prov : ${providers}" th:value="${prov.id}" th:text="${prov.nombre}"></option>
+                </select>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="unidadMedida" class="form-label">Unidad de Medida:</label>
+                <select id="unidadMedida" th:field="*{unidadMedida}" class="form-select" required>
+                    <option value="">Seleccione una unidad</option>
+                    <option th:each="unit : ${units}" th:value="${unit.id}" th:text="${unit.nombre}"></option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar Producto</button>
+    </form>
+
+</div>
+
+</body>
+</html>

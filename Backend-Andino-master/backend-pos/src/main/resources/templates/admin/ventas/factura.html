@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Factura</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <h1>Factura N° <span th:text="${venta.id}"></span></h1>
+    <hr>
+    <p><strong>Fecha:</strong> <span th:text="${venta.fecha}"></span></p>
+    <p><strong>Cliente:</strong> <span th:text="${venta.cliente != null ? venta.cliente.nombre : 'N/A'}"></span></p>
+    <p><strong>Usuario:</strong> <span th:text="${venta.usuario != null ? venta.usuario.username : 'N/A'}"></span></p>
+    <hr>
+    <h3>Detalles de la Venta</h3>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio Unitario</th>
+            <th>Subtotal</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="detalle : ${venta.detalles}">
+            <td th:text="${detalle.producto.nombre}"></td>
+            <td th:text="${detalle.cantidad}"></td>
+            <td th:text="${detalle.precioUnitario}"></td>
+            <td th:text="${detalle.subtotal}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <hr>
+    <div class="row">
+        <div class="col-md-6">
+            <p><strong>IVA:</strong> <span th:text="${venta.iva}"></span></p>
+            <p><strong>Total:</strong> <span th:text="${venta.total}"></span></p>
+        </div>
+    </div>
+    <hr>
+    <a th:href="@{/admin/ventas}" class="btn btn-secondary">Volver al Listado</a>
+    <a th:href="@{/admin/ventas/factura/pdf/{id}(id=${venta.id})}" class="btn btn-primary">Descargar PDF</a>
+</div>
+</body>
+</html>
