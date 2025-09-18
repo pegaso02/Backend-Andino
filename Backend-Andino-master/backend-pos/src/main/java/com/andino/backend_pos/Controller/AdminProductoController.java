@@ -42,11 +42,15 @@ public class AdminProductoController {
         model.addAttribute("categorias", categoriaService.findAll());
         model.addAttribute("proveedores", proveedorService.findAll());
         model.addAttribute("unidades", unidadMedidaService.findAll());
+        model.addAttribute("nextCodigo", productoService.getNextCodigo());
         return "admin/productos/form";
     }
 
     @PostMapping("/save")
     public String saveProducto(@ModelAttribute Producto producto, RedirectAttributes redirectAttributes) {
+        if (producto.getId() == null) {
+            producto.setCodigo(productoService.getNextCodigo());
+        }
         productoService.guardarProducto(producto);
         redirectAttributes.addFlashAttribute("message", "Producto guardado exitosamente!");
         return "redirect:/admin/productos";

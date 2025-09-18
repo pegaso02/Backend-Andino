@@ -105,10 +105,8 @@ public class PedidoService {
         return mapToResponse(pedido);
     }
 
-    public List<PedidoProveedorResponseDTO> listarTodos() {
-        return repo.findAllWithDetails().stream()
-                .map(this::mapToResponse)
-                .toList();
+    public List<PedidoProveedor> listarTodos() {
+        return repo.findAllWithDetails();
     }
 
     public void deleteById(Long id) {
@@ -119,10 +117,8 @@ public class PedidoService {
         return repo.findByIdWithDetails(id);
     }
 
-    public List<PedidoProveedorResponseDTO> findPendingPedidos() {
-        return repo.findByEstado("PENDIENTE").stream()
-                .map(this::mapToResponse)
-                .toList();
+    public List<PedidoProveedor> findPendingPedidos() {
+        return repo.findByEstado("PENDIENTE");
     }
 
 }

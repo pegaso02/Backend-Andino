@@ -3,6 +3,7 @@ package com.andino.backend_pos.Controller;
 import com.andino.backend_pos.DTOs.EstadoRequestDTO;
 import com.andino.backend_pos.DTOs.PedidoProveedorRequestDTO;
 import com.andino.backend_pos.DTOs.ResponseDTOs.PedidoProveedorResponseDTO;
+import com.andino.backend_pos.Model.PedidoProveedor;
 import com.andino.backend_pos.Service.PedidoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,15 +35,15 @@ public class PedidoProveedorController {
         return ResponseEntity.ok(dto);
     }
 
-    // Obtener un pedido por ID
-    @GetMapping("/{id}")
-    public ResponseEntity<PedidoProveedorResponseDTO> obtenerPedido(@PathVariable Long id) {
-        return ResponseEntity.ok(pedidoService.obtenerPedido(id));
-    }
+//    // Obtener un pedido por ID
+//    @GetMapping("/{id}")
+//    public ResponseEntity<PedidoProveedorResponseDTO> obtenerPedido(@PathVariable Long id) {
+//        return ResponseEntity.ok(pedidoService.obtenerPedido(id));
+//    }
 
     // Obtener todos los pedidos
     @GetMapping
-    public ResponseEntity<List<PedidoProveedorResponseDTO>> listarTodos() {
+    public ResponseEntity<List<PedidoProveedor>> listarTodos() {
         return ResponseEntity.ok(pedidoService.listarTodos());
     }
 

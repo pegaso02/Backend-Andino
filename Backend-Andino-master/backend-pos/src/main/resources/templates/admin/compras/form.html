@@ -1,52 +1,97 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
-    <title>Registrar Compra</title>
+    <title>Registrar Compra - Andino POS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            margin-bottom: 2rem;
+        }
+    </style>
 </head>
 <body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Andino POS</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/dashboard}">Dashboard</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" class="d-flex">
+                        <button type="submit" class="btn btn-outline-light">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar SesiÃ³n
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
 <div class="container mt-4">
-    <h1>Registrar Nueva Compra</h1>
-
-    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
-    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
-
-    <form th:action="@{/admin/compras/save}" th:object="${compra}" method="post">
-        <input type="hidden" th:field="*{id}" />
-
-        <div class="mb-3">
-            <label for="fecha" class="form-label">Fecha:</label>
-            <input type="date" id="fecha" th:field="*{fecha}" class="form-control" required>
+    <div class="card">
+        <div class="card-header">
+            <h1 class="mb-0">Registrar Nueva Compra</h1>
         </div>
+        <div class="card-body">
+            <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-        <div class="mb-3">
-            <label for="pedidoProveedor" class="form-label">Pedido a Proveedor (Pendiente):</label>
-            <select id="pedidoProveedor" name="pedidoProveedorId" class="form-select" required>
-                <option value="">Seleccione un pedido</option>
-                <option th:each="pedido : ${pedidosPendientes}" th:value="${pedido.id}" th:text="'Pedido #' + ${pedido.id} + ' - ' + ${pedido.proveedorId}"></option>
-            </select>
+            <form th:action="@{/admin/compras/save}" th:object="${compra}" method="post">
+                <input type="hidden" th:field="*{id}" />
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="fecha" class="form-label">Fecha:</label>
+                        <input type="date" id="fecha" th:field="*{fecha}" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="pedidoProveedor" class="form-label">Pedido a Proveedor (Pendiente):</label>
+                        <select id="pedidoProveedor" name="pedidoProveedorId" class="form-select" required>
+                            <option value="">Seleccione un pedido</option>
+                            <option th:each="pedido : ${pedidosPendientes}" th:value="${pedido.id}" th:text="'Pedido #' + ${pedido.id} + ' - ' + ${pedido.proveedor.nombre}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr>
+
+                <h3>Detalles de la Compra</h3>
+                <table class="table table-bordered" id="detallesTable">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Details will be populated by JavaScript based on selected PedidoProveedor -->
+                    </tbody>
+                </table>
+                <button type="button" class="btn btn-success mb-3" id="addDetalle"><i class="fas fa-plus"></i> AÃ±adir Detalle Manualmente</button>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary me-2"><i class="fas fa-save"></i> Guardar Compra</button>
+                    <a th:href="@{/admin/compras}" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
+                </div>
+            </form>
         </div>
-
-<!--        <h3>Detalles de la Compra</h3>-->
-<!--        <table class="table table-bordered" id="detallesTable">-->
-<!--            <thead>-->
-<!--            <tr>-->
-<!--                <th>Producto</th>-->
-<!--                <th>Cantidad</th>-->
-<!--                <th>Precio Unitario</th>-->
-<!--                <th>Acciones</th>-->
-<!--            </tr>-->
-<!--            </thead>-->
-            <tbody>
-            <!-- Details will be populated by JavaScript based on selected PedidoProveedor -->
-            </tbody>
-        </table>
-        <button type="button" class="btn btn-success mb-3" id="addDetalle">Añadir Detalle Manualmente</button>
-
-        <button type="submit" class="btn btn-primary">Guardar Compra</button>
-        <a th:href="@{/admin/compras}" class="btn btn-secondary">Cancelar</a>
-    </form>
+    </div>
 </div>
 
 <script th:inline="javascript">
@@ -56,28 +101,22 @@
         const detallesTableBody = document.querySelector('#detallesTable tbody');
         const addDetalleButton = document.getElementById('addDetalle');
         const allProductos = /*[[${productos}]]*/ [];
+        const productosMap = new Map(allProductos.map(p => [p.id, p.nombre]));
 
         // Function to add a new detail row
-        function addRow(productoId = '', cantidad = '', precioUnitario = '') {
+        function addRow(detalle = {}) {
             const newRow = detallesTableBody.insertRow();
             const rowIndex = detallesTableBody.rows.length - 1;
 
-            // Product Dropdown
+            // Product
             const productoCell = newRow.insertCell();
-            const selectProducto = document.createElement('select');
-            selectProducto.className = 'form-select';
-            selectProducto.name = `productoId`; // Use simple name for @RequestParam List<Long> productIds
-            selectProducto.required = true;
-            allProductos.forEach(prod => {
-                const option = document.createElement('option');
-                option.value = prod.id;
-                option.textContent = prod.nombre;
-                if (prod.id == productoId) { // Use == for type coercion
-                    option.selected = true;
-                }
-                selectProducto.appendChild(option);
-            });
-            productoCell.appendChild(selectProducto);
+            const productoNombre = detalle.productoId ? productosMap.get(detalle.productoId) : '';
+            productoCell.textContent = productoNombre;
+            const inputProductoId = document.createElement('input');
+            inputProductoId.type = 'hidden';
+            inputProductoId.name = `detalles[${rowIndex}].producto.id`;
+            inputProductoId.value = detalle.productoId || '';
+            productoCell.appendChild(inputProductoId);
 
             // Quantity Input
             const cantidadCell = newRow.insertCell();
@@ -85,8 +124,8 @@
             inputCantidad.type = 'number';
             inputCantidad.step = '0.001';
             inputCantidad.className = 'form-control';
-            inputCantidad.name = `cantidad`; // Use simple name for @RequestParam List<String> cantidades
-            inputCantidad.value = cantidad;
+            inputCantidad.name = `detalles[${rowIndex}].cantidad`;
+            inputCantidad.value = detalle.cantidad || '';
             inputCantidad.required = true;
             cantidadCell.appendChild(inputCantidad);
 
@@ -96,8 +135,8 @@
             inputPrecioUnitario.type = 'number';
             inputPrecioUnitario.step = '0.01';
             inputPrecioUnitario.className = 'form-control';
-            inputPrecioUnitario.name = `precioUnitario`; // Use simple name for @RequestParam List<String> preciosUnitarios
-            inputPrecioUnitario.value = precioUnitario;
+            inputPrecioUnitario.name = `detalles[${rowIndex}].precioUnitario`;
+            inputPrecioUnitario.value = detalle.precioUnitario || '';
             inputPrecioUnitario.required = true;
             precioUnitarioCell.appendChild(inputPrecioUnitario);
 
@@ -106,11 +145,23 @@
             const removeButton = document.createElement('button');
             removeButton.type = 'button';
             removeButton.className = 'btn btn-danger btn-sm remove-row';
-            removeButton.textContent = 'Eliminar';
+            removeButton.innerHTML = '<i class="fas fa-trash"></i>';
             removeButton.onclick = function() {
                 newRow.remove();
+                updateRowIndexes();
             };
             accionesCell.appendChild(removeButton);
+        }
+
+        function updateRowIndexes() {
+            Array.from(detallesTableBody.rows).forEach((row, index) => {
+                row.querySelectorAll('input').forEach(element => {
+                    const nameAttr = element.name;
+                    if (nameAttr) {
+                        element.name = nameAttr.replace(/detalles\[\d+\]/, `detalles[${index}]`);
+                    }
+                });
+            });
         }
 
         // Event listener for adding a manual detail row
@@ -122,19 +173,14 @@
             detallesTableBody.innerHTML = ''; // Clear existing details
 
             if (pedidoId) {
-                // Fetch PedidoProveedor details from backend (you'll need an API endpoint for this)
-                // For now, this is a placeholder. You would typically make an AJAX call here.
-                // Example: fetch(`/api/pedidos/${pedidoId}`).then(response => response.json()).then(data => {
-                //     data.detalles.forEach(detalle => {
-                //         addRow(detalle.productoId, detalle.cantidad, detalle.precioUnitario);
-                //     });
-                // });
-
-                // Since we don't have a direct API endpoint to get PedidoProveedor details by ID
-                // with all its nested details (products, etc.) in a simple DTO, we'll simulate it.
-                // In a real app, you'd fetch this via AJAX.
-                // For now, we'll just add a placeholder row.
-                addRow(); // Add an empty row for manual input
+                fetch(`/api/pedidos/${pedidoId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.detalles.forEach(detalle => {
+                            addRow(detalle);
+                        });
+                        updateRowIndexes();
+                    });
             }
         });
 
@@ -143,14 +189,16 @@
             pedidoProveedorSelect.dispatchEvent(new Event('change'));
         }
 
-        // Attach remove functionality to existing rows (if any)
+        // Attach remove functionality to existing rows
         detallesTableBody.querySelectorAll('.remove-row').forEach(button => {
             button.onclick = function() {
                 button.closest('tr').remove();
+                updateRowIndexes();
             };
         });
     });
     /*]]>*/
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

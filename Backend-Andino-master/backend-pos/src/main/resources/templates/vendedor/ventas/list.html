@@ -1,52 +1,91 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
-    <title>Mis Ventas</title>
+    <title>Mis Ventas - Andino POS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            margin-bottom: 2rem;
+        }
+    </style>
 </head>
 <body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Andino POS</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/vendedor/dashboard}">Dashboard</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" class="d-flex">
+                        <button type="submit" class="btn btn-outline-light">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar SesiÃ³n
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
 <div class="container mt-4">
-    <h1>Mis Ventas</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Mis Ventas</h1>
+        <div>
+            <a th:href="@{/vendedor/ventas/new}" class="btn btn-primary"><i class="fas fa-plus"></i> Registrar Nueva Venta</a>
+            <a th:href="@{/vendedor/dashboard}" class="btn btn-secondary">Volver al Dashboard</a>
+        </div>
+    </div>
 
     <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
     <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-    <p>
-        <a th:href="@{/vendedor/ventas/new}" class="btn btn-primary">Registrar Nueva Venta</a>
-        <a th:href="@{/vendedor/ventas/descargar-csv}" class="btn btn-secondary">Descargar CSV</a>
-    </p>
-
-    <table class="table table-striped">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Fecha</th>
-            <th>Total</th>
-            <th>IVA</th>
-
-            <th>Usuario</th>
-            <th>Acciones</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="venta : ${ventas}">
-            <td th:text="${venta.id}"></td>
-            <td th:text="${venta.fecha}"></td>
-            <td th:text="${venta.total}"></td>
-            <td th:text="${venta.iva}"></td>
-            <td th:text="${venta.cliente != null ? venta.cliente.nombre : 'N/A'}"></td>
-            <td th:text="${venta.usuario != null ? venta.usuario.username : 'N/A'}"></td>
-            <td>
-                <a th:href="@{/vendedor/ventas/factura/{id}(id=${venta.id})}" class="btn btn-info btn-sm">Ver Factura </a>
-                <a th:href="@{/vendedor/ventas/delete/{id}(id=${venta.id})}" class="btn btn-danger btn-sm" onclick="return confirm ('Estas seguro que deseas eliminar esta Venta?');">Eliminar</a>
-
-            </td>
-        </tr>
-        </tbody>
-    </table>
-
-    <a th:href="@{/vendedor/dashboard}" class="btn btn-secondary">Volver al Dashboard</a>
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>IVA</th>
+                    <th>Cliente</th>
+                    <th>Usuario</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="venta : ${ventas}">
+                    <td th:text="${venta.id}"></td>
+                    <td th:text="${#temporals.format(venta.fecha, 'dd-MM-yyyy HH:mm')}"></td>
+                    <td th:text="${#numbers.formatDecimal(venta.total, 1, 'POINT', 2, 'COMMA')}"></td>
+                    <td th:text="${#numbers.formatDecimal(venta.iva, 1, 'POINT', 2, 'COMMA')}"></td>
+                    <td th:text="${venta.cliente != null ? venta.cliente.nombre : 'N/A'}"></td>
+                    <td th:text="${venta.usuario != null ? venta.usuario.username : 'N/A'}"></td>
+                    <td>
+                        <a th:href="@{/vendedor/ventas/factura/{id}(id=${venta.id})}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i> Ver Factura</a>
+                        <a th:href="@{/vendedor/ventas/delete/{id}(id=${venta.id})}" class="btn btn-danger btn-sm" onclick="return confirm('Â¿EstÃ¡s seguro de que quieres eliminar esta Venta?');"><i class="fas fa-trash"></i> Eliminar</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

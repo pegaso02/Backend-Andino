@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CompraServiceImpl implements CompraService {
@@ -39,28 +40,31 @@ public class CompraServiceImpl implements CompraService {
         PedidoProveedor pedido = pedidoProveedorRepository.findById(pedidoId)
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
 
-
-
         compra.setPedidoProveedor(pedido);
         compra.setProveedor(pedido.getProveedor());
         Compra nuevaCompra = compraRepository.save(compra);
 
-        double total = 0.0;
+        double totalConIva = 0.0;
 
         for (DetalleCompra detalle : detalles) {
             detalle.setCompra(nuevaCompra);
-            double subtotal = detalle.getCantidad() * detalle.getPrecioUnitario();
-            detalle.setSubtotal(subtotal);
+            double subtotalConIva = detalle.getCantidad() * detalle.getPrecioUnitario();
+            detalle.setSubtotal(subtotalConIva);
 
             Producto producto = detalle.getProducto();
             producto.setStock(producto.getStock() + detalle.getCantidad());
             productoRepository.save(producto);
 
-            total += subtotal;
+            totalConIva += subtotalConIva;
             detalleCompraRepository.save(detalle);
         }
 
-        nuevaCompra.setTotal(total);
+        double subtotalSinIva = totalConIva / 1.19;
+        double iva = totalConIva - subtotalSinIva;
+
+        nuevaCompra.setSubtotal(subtotalSinIva);
+        nuevaCompra.setIva(iva);
+        nuevaCompra.setTotal(totalConIva);
         nuevaCompra = compraRepository.save(nuevaCompra);
 
         // ✅ ACTUALIZAR ESTADO DEL PEDIDO A RECIBIDO
@@ -70,7 +74,7 @@ public class CompraServiceImpl implements CompraService {
         // ✅ AUTOMATIZAR PAGO
         PagoProveedorRequestDTO pagoDTO = new PagoProveedorRequestDTO();
         pagoDTO.setProveedorId(pedido.getProveedor().getId());
-        pagoDTO.setMonto(total);
+        pagoDTO.setMonto(totalConIva);
         pagoDTO.setFecha(LocalDate.now());
 
         pagoProveedorService.registrarPago(pagoDTO);
@@ -82,4 +86,32 @@ public class CompraServiceImpl implements CompraService {
         return nuevaCompra;
     }
 
+    @Override
+    public Optional<Compra> findById(Long id) {
+        return compraRepository.findById(id);
+    }
+
+    @Override
+    public List<Compra> findAll() {
+        return compraRepository.findAll();
+    }
+
+    @Override
+    public void updateEstado(Long id, String estado) {
+        Compra compra = compraRepository.findById(id).orElseThrow(() -> new RuntimeException("Compra no encontrada"));
+        compra.setEstado(estado);
+        compraRepository.save(compra);
+    }
+
+    @Override
+    public void marcarComoPagada(Long id) {
+        Compra compra = compraRepository.findById(id).orElseThrow(() -> new RuntimeException("Compra no encontrada"));
+        compra.setPagada(true);
+        compraRepository.save(compra);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        compraRepository.deleteById(id);
+    }
 }

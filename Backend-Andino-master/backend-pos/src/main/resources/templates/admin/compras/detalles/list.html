@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
-    <title>Factura - Andino POS</title>
+    <title>Detalle de Compra - Andino POS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -29,14 +29,14 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link" th:href="@{/vendedor/dashboard}">Dashboard</a>
+                    <a class="nav-link" th:href="@{/admin/dashboard}">Dashboard</a>
                 </li>
             </ul>
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item" sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post" class="d-flex">
                         <button type="submit" class="btn btn-outline-light">
-                            <i class="fas fa-sign-out-alt"></i> Cerrar SesiÃ³n
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
                         </button>
                     </form>
                 </li>
@@ -48,7 +48,7 @@
 <div class="container mt-4 invoice-container">
     <div class="card">
         <div class="card-header">
-            <h1 class="mb-0">Factura NÂ° <span th:text="${venta.id}"></span></h1>
+            <h1 class="mb-0">Detalle de Compra No° <span th:text="${compra.id}"></span></h1>
         </div>
         <div class="card-body">
             <div class="row mb-4">
@@ -61,15 +61,14 @@
                 <div class="col-sm-6">
                     <h6 class="mb-3">Para:</h6>
                     <div>
-                        <strong th:text="${venta.cliente != null ? venta.cliente.nombre : 'N/A'}"></strong>
+                        <strong th:text="${compra.proveedor != null ? compra.proveedor.nombre : 'N/A'}"></strong>
                     </div>
                 </div>
             </div>
 
             <div class="row mb-4">
                 <div class="col-sm-6">
-                    <p><strong>Fecha:</strong> <span th:text="${#temporals.format(venta.fecha, 'dd-MM-yyyy HH:mm')}"></span></p>
-                    <p><strong>Usuario:</strong> <span th:text="${venta.usuario != null ? venta.usuario.username : 'N/A'}"></span></p>
+                    <p><strong>Fecha:</strong> <span th:text="${#temporals.format(compra.fecha, 'dd-MM-yyyy')}"></span></p>
                 </div>
             </div>
 
@@ -79,12 +78,12 @@
                     <tr>
                         <th>Producto</th>
                         <th>Cantidad</th>
-                        <th>Precio Unitario</th>
-                        <th class="text-end">Subtotal</th>
+                        <th>Precio Unitario (con IVA)</th>
+                        <th class="text-end">Subtotal (con IVA)</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="detalle : ${venta.detalles}">
+                    <tr th:each="detalle : ${detalles}">
                         <td th:text="${detalle.producto.nombre}"></td>
                         <td th:text="${detalle.cantidad}"></td>
                         <td th:text="${#numbers.formatDecimal(detalle.precioUnitario, 1, 'POINT', 2, 'COMMA')}"></td>
@@ -100,22 +99,22 @@
                         <tbody>
                         <tr>
                             <td class="left">
-                                <strong>Subtotal</strong>
+                                <strong>Subtotal (sin IVA)</strong>
                             </td>
-                            <td class="right" th:text="${#numbers.formatDecimal(venta.total - venta.iva, 1, 'POINT', 2, 'COMMA')}"></td>
+                            <td class="right" th:text="${#numbers.formatDecimal(compra.subtotal, 1, 'POINT', 2, 'COMMA')}"></td>
                         </tr>
                         <tr>
                             <td class="left">
                                 <strong>IVA (19%)</strong>
                             </td>
-                            <td class="right" th:text="${#numbers.formatDecimal(venta.iva, 1, 'POINT', 2, 'COMMA')}"></td>
+                            <td class="right" th:text="${#numbers.formatDecimal(compra.iva, 1, 'POINT', 2, 'COMMA')}"></td>
                         </tr>
                         <tr>
                             <td class="left">
                                 <strong>Total</strong>
                             </td>
                             <td class="right">
-                                <strong th:text="${#numbers.formatDecimal(venta.total, 1, 'POINT', 2, 'COMMA')}"></strong>
+                                <strong th:text="${#numbers.formatDecimal(compra.total, 1, 'POINT', 2, 'COMMA')}"></strong>
                             </td>
                         </tr>
                         </tbody>
@@ -124,8 +123,7 @@
             </div>
         </div>
         <div class="card-footer bg-white text-end">
-            <a th:href="@{/vendedor/ventas}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al listado</a>
-            <a th:href="@{/vendedor/ventas/factura/pdf/{id}(id=${venta.id})}" class="btn btn-primary"><i class="fas fa-download"></i> Descargar PDF</a>
+            <a th:href="@{/admin/compras}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al listado</a>
         </div>
     </div>
 </div>

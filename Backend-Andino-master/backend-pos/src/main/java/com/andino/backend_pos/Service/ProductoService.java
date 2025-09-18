@@ -13,5 +13,6 @@ public interface ProductoService {
     Optional<Producto> obtenerPorId(Long id);
     Producto actualizarProducto(Long id, Producto productoActualizado);
     void eliminarProducto(Long id);
+    String getNextCodigo();
 
 }

@@ -1,60 +1,104 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
-    <title th:text="${pedido.id == null ? 'Crear Pedido a Proveedor' : 'Editar Pedido a Proveedor'}"></title>
+    <title th:text="${pedido.id == null ? 'Crear Pedido a Proveedor' : 'Editar Pedido a Proveedor'} + ' - Andino POS'"></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            margin-bottom: 2rem;
+        }
+    </style>
 </head>
-
 <body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Andino POS</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/dashboard}">Dashboard</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" class="d-flex">
+                        <button type="submit" class="btn btn-outline-light">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
 <div class="container mt-4">
-    <h1 th:text="${pedido.id == null ? 'Crear Nuevo Pedido a Proveedor' : 'Editar Pedido a Proveedor'}"></h1>
-
-    <form th:action="@{/admin/pedidos/save}" th:object="${pedido}" method="post">
-        <input type="hidden" th:field="*{id}" />
-
-        <div class="mb-3">
-            <label for="fecha" class="form-label">Fecha:</label>
-            <input type="date" id="fecha" th:field="*{fecha}" class="form-control" required>
+    <div class="card">
+        <div class="card-header">
+            <h1 class="mb-0" th:text="${pedido.id == null ? 'Crear Nuevo Pedido a Proveedor' : 'Editar Pedido a Proveedor'}"></h1>
         </div>
+        <div class="card-body">
+            <form th:action="@{/admin/pedidos/save}" th:object="${pedido}" method="post">
+                <input type="hidden" th:field="*{id}" />
 
-        <div class="mb-3">
-            <label for="proveedor" class="form-label">Proveedor:</label>
-            <select id="proveedor" th:field="*{proveedor.id}" class="form-select" required>
-                <option value="">Seleccione un proveedor</option>
-                <option th:each="prov : ${proveedores}" th:value="${prov.id}" th:text="${prov.nombre}"></option>
-            </select>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="fecha" class="form-label">Fecha:</label>
+                        <input type="date" id="fecha" th:field="*{fecha}" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="proveedor" class="form-label">Proveedor:</label>
+                        <select id="proveedor" th:field="*{proveedor.id}" class="form-select" required>
+                            <option value="">Seleccione un proveedor</option>
+                            <option th:each="prov : ${proveedores}" th:value="${prov.id}" th:text="${prov.nombre}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr>
+
+                <h3>Detalles del Pedido</h3>
+                <table class="table table-bordered" id="detallesTable">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Existing details (for edit mode) -->
+                    <tr th:each="detalle, stat : *{detalles}">
+                        <td>
+                            <select th:name="|detalles[${stat.index}].producto.id|" class="form-select" required>
+                                <option th:each="prod : ${productos}" th:value="${prod.id}" th:text="${prod.nombre}" th:selected="${prod.id == detalle.producto.id}"></option>
+                            </select>
+                        </td>
+                        <td><input type="number" step="0.001" th:name="|detalles[${stat.index}].cantidad1|" th:value="${detalle.cantidad1}" class="form-control" required></td>
+                        <td><input type="number" step="0.01" th:name="|detalles[${stat.index}].precioUnitario|" th:value="${detalle.precioUnitario}" class="form-control" required></td>
+                        <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <button type="button" class="btn btn-success mb-3" id="addDetalle"><i class="fas fa-plus"></i> Añadir Detalle</button>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary me-2"><i class="fas fa-save"></i> Guardar Pedido</button>
+                    <a th:href="@{/admin/pedidos}" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
+                </div>
+            </form>
         </div>
-
-        <h3>Detalles del Pedido</h3>
-        <table class="table table-bordered" id="detallesTable">
-            <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Cantidad</th>
-                <th>Precio Unitario</th>
-                <th>Acciones</th>
-            </tr>
-            </thead>
-            <tbody>
-            <!-- Existing details (for edit mode) -->
-            <tr th:each="detalle, stat : *{detalles}">
-                <td>
-                    <select th:name="|detalles[${stat.index}].producto.id|" class="form-select" required>
-                        <option th:each="prod : ${productos}" th:value="${prod.id}" th:text="${prod.nombre}" th:selected="${prod.id == detalle.producto.id}"></option>
-                    </select>
-                </td>
-                <td><input type="number" step="0.001" th:name="|detalles[${stat.index}].cantidad1|" th:value="${detalle.cantidad1}" class="form-control" required></td>
-                <td><input type="number" step="0.01" th:name="|detalles[${stat.index}].precioUnitario|" th:value="${detalle.precioUnitario}" class="form-control" required></td>
-                <td><button type="button" class="btn btn-danger btn-sm remove-row">Eliminar</button></td>
-            </tr>
-            </tbody>
-        </table>
-        <button type="button" class="btn btn-success mb-3" id="addDetalle">Añadir Detalle</button>
-
-        <button type="submit" class="btn btn-primary">Guardar Pedido</button>
-        <a th:href="@{/admin/pedidos}" class="btn btn-secondary">Cancelar</a>
-    </form>
+    </div>
 </div>
 
 <script th:inline="javascript">
@@ -112,7 +156,7 @@
             const removeButton = document.createElement('button');
             removeButton.type = 'button';
             removeButton.className = 'btn btn-danger btn-sm remove-row';
-            removeButton.textContent = 'Eliminar';
+            removeButton.innerHTML = '<i class="fas fa-trash"></i>';
             removeButton.onclick = function() {
                 newRow.remove();
                 updateRowIndexes();
@@ -146,5 +190,6 @@
     });
     /*]]>*/
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

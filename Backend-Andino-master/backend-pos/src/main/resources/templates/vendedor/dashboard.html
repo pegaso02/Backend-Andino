@@ -1,31 +1,127 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
-    <title>Vendedor Dashboard</title>
+    <title>Vendedor Dashboard - Andino POS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script>
-        function logout() {
-            window.location.href = "/login?logout";
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
         }
-    </script>
+        .navbar {
+            margin-bottom: 2rem;
+        }
+        .card-link {
+            text-decoration: none;
+            color: inherit;
+        }
+        .card {
+            transition: transform .2s;
+            height: 100%;
+        }
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+        }
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .card-body i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #0d6efd;
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-4">
-    <h1>Dashboard del Vendedor</h1>
-    <p>Bienvenido al panel de ventas.</p>
-    <div class="list-group">
-        <a th:href="@{/vendedor/ventas}" class="list-group-item list-group-item-action">Ver Mis Ventas</a>
-        <a th:href="@{/vendedor/ventas/detalles}" class="list-group-item list-group-item-action">Detalle de Ventas</a>
-        <a th:href="@{/vendedor/ventas/new}" class="list-group-item list-group-item-action">Registrar Nueva Venta</a>
-        <a th:href="@{/vendedor/productos}" class="list-group-item list-group-item-action">Ver Productos</a>
-        <a th:href="@{/vendedor/categorias}" class="list-group-item list-group-item-action">Ver Categorías</a>
 
-        <form th:action="@{/logout}" method="post">
-            <button type="submit" class="btn btn-dark">Cerrar Sesión</button>
-        </form>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Andino POS</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" class="d-flex">
+                        <button type="submit" class="btn btn-outline-light">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar SesiÃ³n
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
     </div>
-    <!-- Links to vendor functionalities will go here -->
+</nav>
+
+<div class="container" sec:authorize="isAuthenticated()">
+    <div class="px-4 py-5 my-5 text-center">
+        <h1 class="display-5 fw-bold">Dashboard del Vendedor</h1>
+        <div class="col-lg-6 mx-auto">
+            <p class="lead mb-4">Bienvenido al panel de ventas. Seleccione una opciÃ³n para comenzar.</p>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 justify-content-center">
+        <div class="col">
+            <a th:href="@{/vendedor/ventas/new}" class="card-link">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-plus-circle"></i>
+                        <h5 class="card-title">Registrar Nueva Venta</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a th:href="@{/vendedor/ventas}" class="card-link">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-cash-register"></i>
+                        <h5 class="card-title">Ver Mis Ventas</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a th:href="@{/vendedor/ventas/detalles}" class="card-link">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-receipt"></i>
+                        <h5 class="card-title">Detalle de Ventas</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a th:href="@{/vendedor/productos}" class="card-link">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-box-open"></i>
+                        <h5 class="card-title">Ver Productos</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col">
+            <a th:href="@{/vendedor/categorias}" class="card-link">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-tags"></i>
+                        <h5 class="card-title">Ver CategorÃ­as</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

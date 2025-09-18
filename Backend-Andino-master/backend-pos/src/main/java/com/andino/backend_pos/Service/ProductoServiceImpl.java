@@ -78,6 +78,25 @@ public class ProductoServiceImpl implements ProductoService {
         productoRepository.deleteById(id);
     }
 
+    @Override
+    public String getNextCodigo() {
+        List<Producto> productos = productoRepository.findAll();
+        if (productos.isEmpty()) {
+            return "1";
+        }
+        int maxCodigo = productos.stream()
+                .map(p -> {
+                    try {
+                        return Integer.parseInt(p.getCodigo());
+                    } catch (NumberFormatException e) {
+                        return 0;
+                    }
+                })
+                .max(Integer::compareTo)
+                .orElse(0);
+        return String.valueOf(maxCodigo + 1);
+    }
+
     }
 
 
