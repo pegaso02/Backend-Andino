@@ -17,7 +17,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Etapa 2: Contenedor ligero con JRE para ejecutar la app
-FROM openjdk:21-jre-slim
+FROM openjdk:21-slim
 
 WORKDIR /app
 
