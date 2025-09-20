@@ -1,11 +1,11 @@
 # Etapa 1: Build con Maven y JDK 21 para compilar con release 21
-FROM maven:3.9.0-eclipse-temurin-21 as builder
+FROM maven:3.9.6-eclipse-temurin-21-jammy as builder
 
 WORKDIR /app
 
 COPY pom.xml .
 
-RUN mvn dependency:go-offline
+RUN mvn dependency:go-offline -B
 
 COPY src ./src
 
@@ -16,12 +16,6 @@ FROM openjdk:21-slim
 
 WORKDIR /app
 
-RUN addgroup --system appgroup && adduser --system appuser --ingroup appgroup
-
-USER appuser
-
-COPY --from=builder /app/target/backend-pos-*.jar app.jar
-
-EXPOSE 8080
+COPY --from=builder /app/target/*.jar app.jar
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
