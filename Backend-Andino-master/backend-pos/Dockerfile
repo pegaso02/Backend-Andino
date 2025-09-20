@@ -1,5 +1,5 @@
 # Etapa 1: Build con Maven (compila la app y genera el jar)
-FROM maven:3.9.0-eclipse-temurin-21 as builder
+FROM maven:3.9.0 as builder
 
 WORKDIR /app
 
